@@ -1,0 +1,54 @@
+name: Deploy BreakPong to sarcastichedgehog.com
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout BreakPong repo
+        uses: actions/checkout@v4
+        with:
+          path: breakpong_game
+
+      - name: Create config.js
+        working-directory: ./breakpong_game
+        run: |
+          echo "window.APP_CONFIG = {" > config.js
+          echo "  API_KEY: \"${{ secrets.MULTISYNQ_API_KEY }}\"," >> config.js
+          echo "  APP_ID: \"${{ secrets.MULTISYNQ_APP_ID }}\"" >> config.js
+          echo "};" >> config.js
+
+      - name: Checkout sarcastichedgehog.com
+        uses: actions/checkout@v4
+        with:
+          repository: SarcyHedgehog/sarcastichedgehog.com
+          path: website_repo
+          token: ${{ secrets.GH_PAGES_DEPLOY_TOKEN }}
+
+      - name: Copy BreakPong files to website
+        run: |
+          TARGET="./website_repo/breakpong"
+          mkdir -p "$TARGET"
+          cp ./breakpong_game/index.html "$TARGET/"
+          cp ./breakpong_game/config.js "$TARGET/"
+        shell: bash
+
+      - name: Commit and push
+        env:
+          GIT_USER_NAME: "GitHub Actions Bot"
+          GIT_USER_EMAIL: "actions@github.com"
+        run: |
+          cd ./website_repo
+          if [[ -z $(git status --porcelain) ]]; then
+            echo "No changes to commit."
+          else
+            git config user.name "${GIT_USER_NAME}"
+            git config user.email "${GIT_USER_EMAIL}"
+            git add .
+            git commit -m "Deploy BreakPong update"
+            git push origin main
+          fi

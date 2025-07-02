@@ -1,0 +1,5 @@
+// config.js - DO NOT COMMIT THIS FILE! Add it to .gitignore
+window.APP_CONFIG = {
+  API_KEY: "2atXt6dTbNaKKO83iB4tsYDfmpusH0C6veTYXjy7Om",
+  APP_ID: "com.sarcastichedgehog.pongout",
+};
